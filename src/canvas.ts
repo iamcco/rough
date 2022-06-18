@@ -13,29 +13,40 @@ export class RoughCanvas {
     this.gen = new RoughGenerator(config);
   }
 
-  draw(drawable: Drawable): void {
+  draw(drawable: Drawable, options?: Options): void {
     const sets = drawable.sets || [];
     const o = drawable.options || this.getDefaultOptions();
     const ctx = this.ctx;
     const precision = drawable.options.fixedDecimalPlaceDigits;
+    const n = {
+      fill: options?.fill || o.fill,
+      fillWeight : options?.fillWeight !== undefined ? options.fillWeight : o.fillWeight,
+      fillLineDash : options?.fillLineDash || o.fillLineDash,
+      fillLineDashOffset : options?.fillLineDashOffset || o.fillLineDashOffset,
+      stroke: options?.stroke || o.stroke,
+      strokeLineDash: options?.strokeLineDash || o.strokeLineDash,
+      strokeWidth: options?.strokeWidth !== undefined ? options.strokeWidth : o.strokeWidth,
+      strokeLineDashOffset: options?.strokeLineDashOffset || o.strokeLineDashOffset,
+      fixedDecimalPlaceDigits: options?.fixedDecimalPlaceDigits !== undefined || o.fixedDecimalPlaceDigits,
+    };
     for (const drawing of sets) {
       switch (drawing.type) {
         case 'path':
           ctx.save();
-          ctx.strokeStyle = o.stroke === 'none' ? 'transparent' : o.stroke;
-          ctx.lineWidth = o.strokeWidth;
-          if (o.strokeLineDash) {
-            ctx.setLineDash(o.strokeLineDash);
+          ctx.strokeStyle = n.stroke === 'none' ? 'transparent' : n.stroke;
+          ctx.lineWidth = n.strokeWidth;
+          if (n.strokeLineDash) {
+            ctx.setLineDash(n.strokeLineDash);
           }
-          if (o.strokeLineDashOffset) {
-            ctx.lineDashOffset = o.strokeLineDashOffset;
+          if (n.strokeLineDashOffset) {
+            ctx.lineDashOffset = n.strokeLineDashOffset;
           }
           this._drawToContext(ctx, drawing, precision);
           ctx.restore();
           break;
         case 'fillPath': {
           ctx.save();
-          ctx.fillStyle = o.fill || '';
+          ctx.fillStyle = n.fill || '';
           const fillRule: CanvasFillRule = (drawable.shape === 'curve' || drawable.shape === 'polygon' || drawable.shape === 'path') ? 'evenodd' : 'nonzero';
           this._drawToContext(ctx, drawing, precision, fillRule);
           ctx.restore();
@@ -48,7 +59,7 @@ export class RoughCanvas {
     }
   }
 
-  private fillSketch(ctx: CanvasRenderingContext2D, drawing: OpSet, o: ResolvedOptions) {
+  private fillSketch(ctx: CanvasRenderingContext2D, drawing: OpSet, o: Pick<ResolvedOptions, 'fill' | 'fillWeight' | 'fillLineDash' | 'fillLineDashOffset'| 'stroke' | 'strokeLineDash' | 'strokeWidth' | 'strokeLineDashOffset' | 'fixedDecimalPlaceDigits'>) {
     let fweight = o.fillWeight;
     if (fweight < 0) {
       fweight = o.strokeWidth / 2;
