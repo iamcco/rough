@@ -2,6 +2,8 @@ import { Config, Options, ResolvedOptions, Drawable, OpSet } from './core';
 import { RoughGenerator } from './generator';
 import { Point } from './geometry';
 
+type NewOptions = Pick<ResolvedOptions, 'fill' | 'fillWeight' | 'fillLineDash' | 'fillLineDashOffset'| 'stroke' | 'strokeLineDash' | 'strokeWidth' | 'strokeLineDashOffset' | 'fixedDecimalPlaceDigits'>
+
 export class RoughCanvas {
   private gen: RoughGenerator;
   private canvas: HTMLCanvasElement;
@@ -18,7 +20,7 @@ export class RoughCanvas {
     const o = drawable.options || this.getDefaultOptions();
     const ctx = this.ctx;
     const precision = drawable.options.fixedDecimalPlaceDigits;
-    const n = {
+    const n: NewOptions  = {
       fill: options?.fill || o.fill,
       fillWeight : options?.fillWeight !== undefined ? options.fillWeight : o.fillWeight,
       fillLineDash : options?.fillLineDash || o.fillLineDash,
@@ -27,7 +29,7 @@ export class RoughCanvas {
       strokeLineDash: options?.strokeLineDash || o.strokeLineDash,
       strokeWidth: options?.strokeWidth !== undefined ? options.strokeWidth : o.strokeWidth,
       strokeLineDashOffset: options?.strokeLineDashOffset || o.strokeLineDashOffset,
-      fixedDecimalPlaceDigits: options?.fixedDecimalPlaceDigits !== undefined || o.fixedDecimalPlaceDigits,
+      fixedDecimalPlaceDigits: options?.fixedDecimalPlaceDigits !== undefined ? options?.fixedDecimalPlaceDigits : o.fixedDecimalPlaceDigits,
     };
     for (const drawing of sets) {
       switch (drawing.type) {
@@ -53,13 +55,13 @@ export class RoughCanvas {
           break;
         }
         case 'fillSketch':
-          this.fillSketch(ctx, drawing, o);
+          this.fillSketch(ctx, drawing, n);
           break;
       }
     }
   }
 
-  private fillSketch(ctx: CanvasRenderingContext2D, drawing: OpSet, o: Pick<ResolvedOptions, 'fill' | 'fillWeight' | 'fillLineDash' | 'fillLineDashOffset'| 'stroke' | 'strokeLineDash' | 'strokeWidth' | 'strokeLineDashOffset' | 'fixedDecimalPlaceDigits'>) {
+  private fillSketch(ctx: CanvasRenderingContext2D, drawing: OpSet, o: NewOptions) {
     let fweight = o.fillWeight;
     if (fweight < 0) {
       fweight = o.strokeWidth / 2;
